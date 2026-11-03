@@ -181,14 +181,30 @@ class MaxClient:
             if delay:
                 await asyncio.sleep(delay)
             try:
-                await self._json("POST", "/messages", params=target, json=payload)
-                return
-            except MaxExportError as exc:
-                # Retry only the documented CDN processing delay.
-                # _json masks raw statuses; detect the code directly below instead.
-                if attempt == 3:
-                    raise
-                raise exc
+                response = await self._client.post(
+                    "/messages", params=target, json=payload,
+                )
+                if response.is_success:
+                    return
+                try:
+                    error_data = response.json()
+                except ValueError:
+                    error_data = {}
+                code = error_data.get("code") if isinstance(error_data, dict) else None
+                if code == "attachment.not.ready" and attempt < 3:
+                    continue
+                if response.status_code == 401:
+                    raise MaxExportError("MAX отклонил токен отправителя.")
+                if response.status_code == 403:
+                    raise MaxExportError("MAX запретил отправку файла в этот чат.")
+                if response.status_code == 429:
+                    raise MaxExportError("MAX ограничил частоту отправки сообщений.")
+                raise MaxExportError(
+                    f"MAX отклонил документ (HTTP {response.status_code}, "
+                    f"код {code or 'не указан'})."
+                )
+            except httpx.HTTPError:
+                raise MaxExportError("Сетевая ошибка при отправке CSV в MAX.") from None
 
 
 def safe_upload_url(value: str) -> bool:
