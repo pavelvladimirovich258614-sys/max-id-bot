@@ -1,0 +1,20 @@
+name: Hermes MAX group export tests
+
+on:
+  pull_request:
+    paths:
+      - "hermes_plugin/max_group_export/**"
+      - "tests/test_hermes_max_group_export.py"
+      - ".github/workflows/hermes-max-group-export-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install "httpx>=0.28.1,<1"
+      - run: python -m unittest discover -s tests -p "test_hermes_max_group_export.py" -v

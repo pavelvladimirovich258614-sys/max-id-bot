@@ -1,0 +1,8 @@
+name: max-group-export
+version: "0.1.0"
+description: "Authenticated MAX group/channel IDs and explicit administrator-only CSV member exports"
+author: Pavel / MAX ID Bot
+license: MIT
+homepage: https://github.com/pavelvladimirovich258614-sys/max-id-bot
+python_dependencies:
+  - "httpx>=0.28.1,<1"
